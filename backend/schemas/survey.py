@@ -6,7 +6,7 @@ class QuestionBase(BaseModel):
     question_text: str
     question_type: str
     options: Optional[str] = None
-    model_config = ConfigDict(from_attributes=True)  # Updated from orm_mode
+    model_config = ConfigDict(from_attributes=True)
 
 class QuestionCreate(QuestionBase):
     pass
