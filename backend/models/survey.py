@@ -1,7 +1,15 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, JSON, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, JSON, Float, Enum as SQLEnum, String
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
+from enum import Enum
+
+class QuestionType(Enum):
+    MULTIPLE_CHOICE = "multiple_choice"
+    TEXT = "text"
+    RATING = "rating"
+    BOOLEAN = "boolean"
+    DROPDOWN = "dropdown"
 
 class Survey(Base):
 	__tablename__ = "surveys"
@@ -24,7 +32,7 @@ class Question(Base):
 	id = Column(Integer, primary_key=True, index=True)
 	survey_id = Column(Integer, ForeignKey("surveys.id"))
 	question_text = Column(String, nullable=False)
-	question_type = Column(String, nullable=False)  # multiple_choice, text, rating, etc.
+	question_type = Column(SQLEnum(QuestionType), nullable = False)  # Enum column
 	options = Column(String)  # JSON string for multiple choice options
 
 	# Relationships
