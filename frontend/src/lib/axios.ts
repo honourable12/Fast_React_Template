@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const API_URL = 'http://localhost:8000';
 
@@ -16,5 +17,25 @@ axiosInstance.interceptors.request.use((config) => {
   }
   return config;
 });
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 422) {
+      const validationErrors = error.response.data.detail;
+      if (Array.isArray(validationErrors)) {
+        validationErrors.forEach((err) => {
+          toast.error(`${err.loc.join('.')}: ${err.msg}`);
+        });
+      } else {
+        toast.error(error.response.data.detail || 'Validation error');
+      }
+    } else if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default axiosInstance;

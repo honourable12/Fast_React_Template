@@ -1,44 +1,53 @@
 import { create } from 'zustand';
-import axios from '../lib/axios';
-import { User, LoginCredentials, RegisterData, AuthResponse } from '../types/auth';
+import { User } from '../types/auth';
+import axiosInstance from '../lib/axios';
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  setUser: (user: User | null) => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (data: any) => Promise<void>;
   logout: () => void;
   getProfile: () => Promise<void>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
-  resetPassword: (email: string) => Promise<string>;
-  deleteAccount: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: false,
 
-  login: async (credentials) => {
-    set({ isLoading: true });
-    try {
-      const { data } = await axios.post<AuthResponse>('/auth/token', credentials);
-      localStorage.setItem('token', data.access_token);
-      set({ isAuthenticated: true });
-      await useAuthStore.getState().getProfile();
-    } finally {
-      set({ isLoading: false });
-    }
+  setUser: (user) => set({ user, isAuthenticated: !!user }),
+
+  login: async (username, password) => {
+    const formData = new URLSearchParams();
+    formData.append('username', username);
+    formData.append('password', password);
+
+    const response = await axiosInstance.post('/auth/token', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+
+    localStorage.setItem('token', response.data.access_token);
+    set({ isAuthenticated: true });
+
+    // Fetch user profile after successful login
+    const profileResponse = await axiosInstance.get('/auth/profile');
+    set({ user: profileResponse.data });
   },
 
   register: async (data) => {
-    set({ isLoading: true });
-    try {
-      await axios.post('/auth/register', data);
-    } finally {
-      set({ isLoading: false });
-    }
+    const formData = new URLSearchParams();
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, value as string);
+    });
+
+    await axiosInstance.post('/auth/register', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
   },
 
   logout: () => {
@@ -48,27 +57,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   getProfile: async () => {
     try {
-      const { data } = await axios.get<User>('/auth/profile');
-      set({ user: data, isAuthenticated: true });
+      const response = await axiosInstance.get('/auth/profile');
+      set({ user: response.data, isAuthenticated: true });
     } catch (error) {
+      localStorage.removeItem('token');
       set({ user: null, isAuthenticated: false });
     }
-  },
-
-  changePassword: async (currentPassword, newPassword) => {
-    await axios.post('/auth/change-password', {
-      current_password: currentPassword,
-      new_password: newPassword,
-    });
-  },
-
-  resetPassword: async (email) => {
-    const { data } = await axios.post<{ temp_password: string }>('/auth/reset-password', { email });
-    return data.temp_password;
-  },
-
-  deleteAccount: async () => {
-    await axios.delete('/auth/delete-account');
-    useAuthStore.getState().logout();
   },
 }));

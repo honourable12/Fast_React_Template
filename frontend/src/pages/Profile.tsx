@@ -1,124 +1,155 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
+import { UserCircle, Key, Trash2 } from 'lucide-react';
+import axiosInstance from '../lib/axios';
 
 export function Profile() {
-  const { user, changePassword, deleteAccount, logout } = useAuthStore();
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-  });
-  const [showChangePassword, setShowChangePassword] = useState(false);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const { user, logout } = useAuthStore();
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsChangingPassword(true);
+  const onChangePassword = async (data: any) => {
     try {
-      await changePassword(passwordData.currentPassword, passwordData.newPassword);
+      await axiosInstance.post('/auth/change-password', {
+        current_password: data.currentPassword,
+        new_password: data.newPassword,
+      });
       toast.success('Password changed successfully');
-      setShowChangePassword(false);
-      setPasswordData({ currentPassword: '', newPassword: '' });
+      setShowPasswordModal(false);
+      reset();
     } catch (error) {
       toast.error('Failed to change password');
-    } finally {
-      setIsChangingPassword(false);
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      try {
-        await deleteAccount();
-        toast.success('Account deleted successfully');
-      } catch (error) {
-        toast.error('Failed to delete account');
-      }
+  const onDeleteAccount = async () => {
+    try {
+      await axiosInstance.delete('/auth/delete-account');
+      toast.success('Account deleted successfully');
+      logout();
+    } catch (error) {
+      toast.error('Failed to delete account');
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow rounded-lg p-6 space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Profile</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Username</label>
-                <p className="mt-1 text-gray-900">{user?.username}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <p className="mt-1 text-gray-900">{user?.email}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                <p className="mt-1 text-gray-900">{user?.full_name}</p>
-              </div>
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="flex items-center space-x-4 mb-6">
+            <UserCircle className="h-16 w-16 text-indigo-600" />
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{user?.full_name}</h2>
+              <p className="text-gray-600">@{user?.username}</p>
+              <p className="text-gray-600">{user?.email}</p>
             </div>
           </div>
 
-          <div>
+          <div className="space-y-4">
             <button
-              onClick={() => setShowChangePassword(!showChangePassword)}
-              className="text-indigo-600 hover:text-indigo-500"
+              onClick={() => setShowPasswordModal(true)}
+              className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-700"
             >
-              {showChangePassword ? 'Cancel' : 'Change Password'}
+              <Key className="h-5 w-5" />
+              <span>Change Password</span>
             </button>
 
-            {showChangePassword && (
-              <form onSubmit={handleChangePassword} className="mt-4 space-y-4">
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center space-x-2 text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="h-5 w-5" />
+              <span>Delete Account</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Change Password Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-medium mb-4">Change Password</h3>
+              <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
                 <div>
-                  <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700">
                     Current Password
                   </label>
                   <input
                     type="password"
-                    id="currentPassword"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    value={passwordData.currentPassword}
-                    onChange={(e) =>
-                      setPasswordData({ ...passwordData, currentPassword: e.target.value })
-                    }
+                    {...register('currentPassword', { required: 'Current password is required' })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
+                  {errors.currentPassword && (
+                    <p className="text-red-500 text-xs mt-1">{errors.currentPassword.message as string}</p>
+                  )}
                 </div>
                 <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-gray-700">
                     New Password
                   </label>
                   <input
                     type="password"
-                    id="newPassword"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    value={passwordData.newPassword}
-                    onChange={(e) =>
-                      setPasswordData({ ...passwordData, newPassword: e.target.value })
-                    }
+                    {...register('newPassword', {
+                      required: 'New password is required',
+                      minLength: {
+                        value: 8,
+                        message: 'Password must be at least 8 characters',
+                      },
+                    })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
+                  {errors.newPassword && (
+                    <p className="text-red-500 text-xs mt-1">{errors.newPassword.message as string}</p>
+                  )}
                 </div>
-                <button
-                  type="submit"
-                  disabled={isChangingPassword}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                >
-                  {isChangingPassword ? 'Changing Password...' : 'Change Password'}
-                </button>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordModal(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 rounded-md"
+                  >
+                    Change Password
+                  </button>
+                </div>
               </form>
-            )}
+            </div>
           </div>
+        )}
 
-          <div className="pt-4 border-t border-gray-200">
-            <button
-              onClick={handleDeleteAccount}
-              className="text-red-600 hover:text-red-500"
-            >
-              Delete Account
-            </button>
+        {/* Delete Account Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-lg font-medium text-red-600 mb-4">Delete Account</h3>
+              <p className="text-gray-600 mb-4">
+                Are you sure you want to delete your account? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={onDeleteAccount}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 rounded-md"
+                >
+                  Delete Account
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
