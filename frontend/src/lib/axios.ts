@@ -33,6 +33,8 @@ axiosInstance.interceptors.response.use(
     } else if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+    } else if (error.response?.status === 500) {
+      toast.error('Internal server error. Please try again later.');
     }
     return Promise.reject(error);
   }

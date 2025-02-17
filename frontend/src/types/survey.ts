@@ -3,11 +3,25 @@ export interface Survey {
   title: string;
   description: string;
   created_at: string;
+  created_by: number;
   questions: Question[];
 }
 
 export interface Question {
   id: number;
+  survey_id: number;
+  question_text: string;
+  question_type: 'text' | 'multiple_choice' | 'single_choice';
+  options?: string[];
+}
+
+export interface SurveyCreate {
+  title: string;
+  description: string;
+  questions: QuestionCreate[];
+}
+
+export interface QuestionCreate {
   question_text: string;
   question_type: 'text' | 'multiple_choice' | 'single_choice';
   options?: string[];
@@ -16,8 +30,13 @@ export interface Question {
 export interface SurveyResponse {
   id: number;
   survey_id: number;
+  respondent_id?: number;
   responses: Record<string, string | string[]>;
   submitted_at: string;
+}
+
+export interface SurveyResponseCreate {
+  responses: Record<string, string | string[]>;
 }
 
 export interface SurveyAnalytics {
@@ -28,4 +47,10 @@ export interface SurveyAnalytics {
 export interface QuestionAnalytics {
   responses: number;
   data: Record<string, number>;
+}
+
+export interface SurveyPermission {
+  survey_id: number;
+  user_id: number;
+  permission_type: string;
 }

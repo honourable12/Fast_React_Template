@@ -4,18 +4,24 @@ import { toast } from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
 import { UserPlus } from 'lucide-react';
 
+interface RegisterFormData {
+  username: string;
+  email: string;
+  full_name: string;
+  password: string;
+}
+
 export function Register() {
   const navigate = useNavigate();
   const { register: registerUser } = useAuthStore();
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterFormData>();
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: RegisterFormData) => {
     try {
       await registerUser(data);
-      toast.success('Registration successful! Please login.');
       navigate('/login');
-    } catch (error) {
-      toast.error('Registration failed. Please try again.');
+    } catch (error: any) {
+      toast.error(error.message);
     }
   };
 
@@ -37,23 +43,29 @@ export function Register() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm -space-y-px">
+          <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="username" className="sr-only">
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
                 Username
               </label>
               <input
-                {...register('username', { required: 'Username is required', minLength: 3 })}
+                {...register('username', {
+                  required: 'Username is required',
+                  minLength: {
+                    value: 3,
+                    message: 'Username must be at least 3 characters'
+                  }
+                })}
                 type="text"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Username"
               />
               {errors.username && (
-                <p className="text-red-500 text-xs mt-1">{errors.username.message as string}</p>
+                <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>
               )}
             </div>
             <div>
-              <label htmlFor="email" className="sr-only">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
               </label>
               <input
@@ -65,29 +77,29 @@ export function Register() {
                   },
                 })}
                 type="email"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Email"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email.message as string}</p>
+                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
               )}
             </div>
             <div>
-              <label htmlFor="full_name" className="sr-only">
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
                 Full Name
               </label>
               <input
                 {...register('full_name', { required: 'Full name is required' })}
                 type="text"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Full Name"
               />
               {errors.full_name && (
-                <p className="text-red-500 text-xs mt-1">{errors.full_name.message as string}</p>
+                <p className="text-red-500 text-xs mt-1">{errors.full_name.message}</p>
               )}
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
               <input
@@ -99,11 +111,11 @@ export function Register() {
                   },
                 })}
                 type="password"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 placeholder="Password"
               />
               {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password.message as string}</p>
+                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
               )}
             </div>
           </div>
@@ -111,9 +123,10 @@ export function Register() {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Register
+              {isSubmitting ? 'Registering...' : 'Register'}
             </button>
           </div>
         </form>
