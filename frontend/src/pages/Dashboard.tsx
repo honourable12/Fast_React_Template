@@ -15,9 +15,10 @@ export function Dashboard() {
 
   const fetchSurveys = async () => {
     try {
-      const response = await axiosInstance.get('/survey/list');
+      const response = await axiosInstance.get('/surveys/list');
       setSurveys(response.data);
     } catch (error) {
+      console.error('Error fetching surveys:', error);
       toast.error('Failed to fetch surveys');
     } finally {
       setLoading(false);
@@ -26,10 +27,11 @@ export function Dashboard() {
 
   const deleteSurvey = async (id: number) => {
     try {
-      await axiosInstance.delete(`/survey/${id}`);
+      await axiosInstance.delete(`/surveys/${id}`);
       toast.success('Survey deleted successfully');
       fetchSurveys();
     } catch (error) {
+      console.error('Error deleting survey:', error);
       toast.error('Failed to delete survey');
     }
   };
@@ -75,7 +77,7 @@ export function Dashboard() {
                 <div className="px-4 py-4 sm:px-6">
                   <div className="flex justify-between">
                     <Link
-                      to={`/survey/${survey.id}`}
+                      to={`/surveys/${survey.id}`}
                       className="text-indigo-600 hover:text-indigo-900 flex items-center"
                     >
                       <ClipboardList className="h-4 w-4 mr-1" />
@@ -90,7 +92,7 @@ export function Dashboard() {
                     </Link>
                     <button
                       onClick={() => {
-                        const shareUrl = `${window.location.origin}/survey/${survey.id}`;
+                        const shareUrl = `${window.location.origin}/surveys/${survey.id}`;
                         navigator.clipboard.writeText(shareUrl);
                         toast.success('Survey link copied to clipboard');
                       }}

@@ -25,7 +25,7 @@ axiosInstance.interceptors.response.use(
       const validationErrors = error.response.data.detail;
       if (Array.isArray(validationErrors)) {
         validationErrors.forEach((err) => {
-          toast.error(`${err.loc.join('.')}: ${err.msg}`);
+          toast.error(err.msg);
         });
       } else {
         toast.error(error.response.data.detail || 'Validation error');
@@ -35,6 +35,8 @@ axiosInstance.interceptors.response.use(
       window.location.href = '/login';
     } else if (error.response?.status === 500) {
       toast.error('Internal server error. Please try again later.');
+    } else if (error.response?.status === 404) {
+      toast.error('Resource not found. Please check the URL.');
     }
     return Promise.reject(error);
   }

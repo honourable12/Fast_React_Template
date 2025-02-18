@@ -11,7 +11,7 @@ export interface Question {
   id: number;
   survey_id: number;
   question_text: string;
-  question_type: 'text' | 'multiple_choice' | 'single_choice';
+  question_type: 'multiple_choice' | 'text' | 'rating';
   options?: string[];
 }
 
@@ -23,7 +23,7 @@ export interface SurveyCreate {
 
 export interface QuestionCreate {
   question_text: string;
-  question_type: 'text' | 'multiple_choice' | 'single_choice';
+  question_type: 'multiple_choice' | 'text' | 'rating';
   options?: string[];
 }
 

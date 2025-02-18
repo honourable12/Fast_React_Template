@@ -5,7 +5,7 @@ from datetime import datetime
 
 from database import get_db
 from models.user import User
-from models.survey import Survey, SurveyResponse, SurveyPermission
+from models.survey import Survey, SurveyResponse, SurveyPermission, Question
 from schemas.survey import (
     SurveyCreate, Survey as SurveySchema,
     SurveyAnalytics, FeedbackAnalysis,
