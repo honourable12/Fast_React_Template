@@ -257,3 +257,27 @@ def validate_survey_response(survey, response):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid answer for question {question_id}"
             )
+
+def analyze_survey_responses(responses: List[dict]) -> Dict:
+    """
+    Analyze survey responses and generate comprehensive analytics
+    """
+    if not responses:  # Check if responses list is empty
+        return {
+            'total_responses': 0,
+            'message': 'No responses available for analysis',
+            'question_analytics': {}
+        }
+
+    analytics = {
+        'total_responses': len(responses),
+        'completion_rate': 0.0,
+        'average_time': 0.0,
+        'question_analytics': {}
+    }
+
+    for question_id in responses[0].get('responses', {}).keys():  # Ensure responses[0] exists
+        answers = [r.get('responses', {}).get(question_id) for r in responses]
+        analytics['question_analytics'][question_id] = analyze_question(answers)
+
+    return analytics

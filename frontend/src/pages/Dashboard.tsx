@@ -77,39 +77,40 @@ export function Dashboard() {
                 <div className="px-4 py-4 sm:px-6">
                   <div className="flex justify-between">
                     <Link
-                      to={`/surveys/${survey.id}`}
-                      className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                        to={`/survey/${survey.id}`}
+                        className="text-indigo-600 hover:text-indigo-900 flex items-center"
                     >
-                      <ClipboardList className="h-4 w-4 mr-1" />
+                      <ClipboardList className="h-4 w-4 mr-1"/>
                       View
                     </Link>
                     <Link
-                      to={`/survey/${survey.id}/analytics`}
-                      className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                        to={`/survey/${survey.id}/analytics`}
+                        className="text-indigo-600 hover:text-indigo-900 flex items-center"
                     >
-                      <BarChart2 className="h-4 w-4 mr-1" />
+                      <BarChart2 className="h-4 w-4 mr-1"/>
                       Analytics
                     </Link>
                     <button
-                      onClick={() => {
-                        const shareUrl = `${window.location.origin}/surveys/${survey.id}`;
-                        navigator.clipboard.writeText(shareUrl);
-                        toast.success('Survey link copied to clipboard');
-                      }}
-                      className="text-indigo-600 hover:text-indigo-900 flex items-center"
+                        onClick={() => {
+                          const shareUrl = `${window.location.origin}/survey-response/${survey.id}`; // Updated to response page
+                          navigator.clipboard.writeText(shareUrl);
+                          toast.success("Survey response link copied to clipboard!");
+                        }}
+                        className="text-indigo-600 hover:text-indigo-900 flex items-center"
                     >
-                      <Share2 className="h-4 w-4 mr-1" />
+                      <Share2 className="h-4 w-4 mr-1"/>
                       Share
                     </button>
+
                     <button
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to delete this survey?')) {
-                          deleteSurvey(survey.id);
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-900 flex items-center"
+                        onClick={() => {
+                          if (window.confirm('Are you sure you want to delete this survey?')) {
+                            deleteSurvey(survey.id);
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-900 flex items-center"
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
+                      <Trash2 className="h-4 w-4 mr-1"/>
                       Delete
                     </button>
                   </div>

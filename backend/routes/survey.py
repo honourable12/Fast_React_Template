@@ -115,7 +115,8 @@ async def submit_survey_response(
 
     return db_response
 
-@router.get("/analytics/{survey_id}", response_model=SurveyAnalytics)
+
+@router.get("/analytics/{survey_id}", response_model = SurveyAnalytics)
 async def get_survey_analytics(
     survey_id: int,
     db: Session = Depends(get_db),
@@ -123,16 +124,20 @@ async def get_survey_analytics(
 ):
     survey = db.query(Survey).filter(Survey.id == survey_id).first()
     if not survey:
-        raise HTTPException(status_code=404, detail="Survey not found")
+        raise HTTPException(status_code = 404, detail = "Survey not found")
 
     # Check permissions
     if not has_survey_permission(db, current_user.id, survey_id, "analyze"):
-        raise HTTPException(status_code=403, detail="Not authorized to view analytics")
+        raise HTTPException(status_code = 403, detail = "Not authorized to view analytics")
 
     responses = db.query(SurveyResponse).filter(SurveyResponse.survey_id == survey_id).all()
-    analytics = analyze_survey_responses(responses)
 
+    if not responses:  # Prevent sending empty responses list to analyze_survey_responses
+        return {"message": "No responses available for analysis", "total_responses": 0, "question_analytics": {}}
+
+    analytics = analyze_survey_responses(responses)
     return SurveyAnalytics(**analytics)
+
 
 @router.post("/{survey_id}/share")
 async def share_survey(
@@ -171,3 +176,16 @@ def has_survey_permission(db: Session, user_id: int, survey_id: int, permission_
     ).first()
 
     return permission is not None
+
+
+@router.get("/{survey_id}", response_model=SurveySchema)
+def get_survey(
+    survey_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    survey = db.query(Survey).filter(Survey.id == survey_id).first()
+    if not survey:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    return survey

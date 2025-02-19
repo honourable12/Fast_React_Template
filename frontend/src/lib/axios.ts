@@ -37,9 +37,11 @@ axiosInstance.interceptors.response.use(
       toast.error('Internal server error. Please try again later.');
     } else if (error.response?.status === 404) {
       toast.error('Resource not found. Please check the URL.');
+    } else if (error.code === 'ERR_NETWORK') {
+      toast.error('Network error. Please check your connection and try again.');
     }
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance;
+export default axiosInstance

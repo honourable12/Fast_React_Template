@@ -11,9 +11,11 @@ export interface Question {
   id: number;
   survey_id: number;
   question_text: string;
-  question_type: 'multiple_choice' | 'text' | 'rating';
+  question_type: QuestionType;
   options?: string[];
 }
+
+export type QuestionType = 'MULTIPLE_CHOICE' | 'TEXT' | 'RATING' | 'BOOLEAN' | 'DROPDOWN';
 
 export interface SurveyCreate {
   title: string;
@@ -23,7 +25,7 @@ export interface SurveyCreate {
 
 export interface QuestionCreate {
   question_text: string;
-  question_type: 'multiple_choice' | 'text' | 'rating';
+  question_type: QuestionType;
   options?: string[];
 }
 
@@ -31,12 +33,12 @@ export interface SurveyResponse {
   id: number;
   survey_id: number;
   respondent_id?: number;
-  responses: Record<string, string | string[]>;
+  responses: Record<string, string | string[] | number | boolean>;
   submitted_at: string;
 }
 
 export interface SurveyResponseCreate {
-  responses: Record<string, string | string[]>;
+  responses: Record<string, string | string[] | number | boolean>;
 }
 
 export interface SurveyAnalytics {
@@ -52,5 +54,10 @@ export interface QuestionAnalytics {
 export interface SurveyPermission {
   survey_id: number;
   user_id: number;
-  permission_type: string;
+  permission_type: 'view' | 'analyze';
+}
+
+export interface ShareSurveyRequest {
+  email: string;
+  permission_type: 'view' | 'analyze';
 }

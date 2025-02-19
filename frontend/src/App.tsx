@@ -6,11 +6,13 @@ import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
 import { CreateSurvey } from './pages/CreateSurvey';
 import { SurveyDetail } from './pages/SurveyDetail';
+import { SurveyAnalytics } from './pages/SurveyAnalytics';
 import { Landing } from './pages/Landing';
 import { Navbar } from './components/Navbar';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useEffect } from 'react';
 import { useAuthStore } from './stores/authStore';
+import { SurveyResponsePage } from "./pages/SurveyResponsePage.tsx";
 
 function App() {
   const { getProfile, isAuthenticated } = useAuthStore();
@@ -84,6 +86,16 @@ function App() {
             }
           />
           <Route
+            path="/survey/:id/analytics"
+            element={
+              <ProtectedRoute>
+                <SurveyAnalytics />
+              </ProtectedRoute>
+            }
+          />
+            <Route path="/survey-response/:surveyId" element={<SurveyResponsePage />} />
+
+          <Route
             path="/profile"
             element={
               <ProtectedRoute>
@@ -98,4 +110,4 @@ function App() {
   );
 }
 
-export default App;
+export default App
