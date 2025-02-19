@@ -12,7 +12,8 @@ import { Navbar } from './components/Navbar';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useEffect } from 'react';
 import { useAuthStore } from './stores/authStore';
-import { SurveyResponsePage } from "./pages/SurveyResponsePage.tsx";
+import SurveyResponsePage from "./pages/SurveyResponsePage.tsx";
+
 
 function App() {
   const { getProfile, isAuthenticated } = useAuthStore();
