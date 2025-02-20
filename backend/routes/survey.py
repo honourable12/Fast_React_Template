@@ -93,18 +93,18 @@ async def submit_survey_response(
     survey_id: int,
     response: SurveyResponseCreate,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user)  # Allow anonymous responses
 ):
     survey = db.query(Survey).filter(Survey.id == survey_id).first()
     if not survey:
         raise HTTPException(status_code=404, detail="Survey not found")
 
-    # Validate the response against question types
+    # Validate response
     validate_survey_response(survey, response.responses)
 
     db_response = SurveyResponse(
         survey_id=survey_id,
-        respondent_id=current_user.id if current_user else None,
+        respondent_id=current_user.id if current_user else None,  # Allow anonymous respondents
         responses=response.responses,
         submitted_at=datetime.utcnow()
     )
@@ -116,7 +116,7 @@ async def submit_survey_response(
     return db_response
 
 
-@router.get("/analytics/{survey_id}", response_model = SurveyAnalytics)
+@router.get("/analytics/{survey_id}", response_model=SurveyAnalytics)
 async def get_survey_analytics(
     survey_id: int,
     db: Session = Depends(get_db),
@@ -124,16 +124,21 @@ async def get_survey_analytics(
 ):
     survey = db.query(Survey).filter(Survey.id == survey_id).first()
     if not survey:
-        raise HTTPException(status_code = 404, detail = "Survey not found")
+        raise HTTPException(status_code=404, detail="Survey not found")
 
     # Check permissions
     if not has_survey_permission(db, current_user.id, survey_id, "analyze"):
-        raise HTTPException(status_code = 403, detail = "Not authorized to view analytics")
+        raise HTTPException(status_code=403, detail="Not authorized to view analytics")
 
     responses = db.query(SurveyResponse).filter(SurveyResponse.survey_id == survey_id).all()
 
     if not responses:  # Prevent sending empty responses list to analyze_survey_responses
-        return {"message": "No responses available for analysis", "total_responses": 0, "question_analytics": {}}
+        return SurveyAnalytics(
+            total_responses=0,
+            completion_rate=0.0,
+            average_time=0.0,
+            question_analytics={}
+        )
 
     analytics = analyze_survey_responses(responses)
     return SurveyAnalytics(**analytics)
@@ -182,10 +187,10 @@ def has_survey_permission(db: Session, user_id: int, survey_id: int, permission_
 def get_survey(
     survey_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: Optional[User] = Depends(get_current_user)  # Allow anonymous users
 ):
     survey = db.query(Survey).filter(Survey.id == survey_id).first()
     if not survey:
         raise HTTPException(status_code=404, detail="Survey not found")
 
-    return survey
+    return survey  # No authentication required

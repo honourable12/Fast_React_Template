@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 interface Question {
   id: number;
@@ -24,34 +25,38 @@ const SurveyResponsePage = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Fetch survey details
-  useEffect(() => {
-    axios
-      .get(`http://localhost:8000/surveys/${surveyId}`)
-      .then((res) => setSurvey(res.data))
-      .catch((err) => setError("Failed to load survey"))
-      .finally(() => setLoading(false));
-  }, [surveyId]);
+  // Fetch survey details (allowing public access)
+useEffect(() => {
+  axios
+    .get(`http://localhost:8000/surveys/${surveyId}`, { withCredentials: false }) // Ensure public access
+    .then((res) => setSurvey(res.data))
+    .catch(() => setError("Failed to load survey"))
+    .finally(() => setLoading(false));
+}, [surveyId]);
 
   // Handle input changes
   const handleChange = (questionId: number, value: any) => {
-    setResponses({ ...responses, [questionId]: value });
+    setResponses((prevResponses) => ({ ...prevResponses, [questionId]: value }));
   };
 
-  // Submit response
+  // Submit response (anonymous users allowed)
   const handleSubmit = async () => {
     try {
-      await axios.post(`http://localhost:8000/surveys/${surveyId}/respond`, {
-        responses,
-      });
+      await axios.post(
+        `http://localhost:8000/surveys/${surveyId}/respond`,
+        { responses },
+        { withCredentials: false } // Ensure it works for unauthenticated users
+      );
       setSuccessMessage("Survey submitted successfully!");
+      toast.success("Survey response submitted!");
     } catch (err) {
       setError("Failed to submit response. Please try again.");
+      toast.error("Failed to submit response.");
     }
   };
 
   if (loading) return <p>Loading survey...</p>;
-  if (error) return <p>{error}</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg">

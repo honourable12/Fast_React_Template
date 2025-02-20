@@ -265,7 +265,8 @@ def analyze_survey_responses(responses: List[dict]) -> Dict:
     if not responses:  # Check if responses list is empty
         return {
             'total_responses': 0,
-            'message': 'No responses available for analysis',
+            'completion_rate': 0.0,
+            'average_time': 0.0,
             'question_analytics': {}
         }
 
@@ -276,8 +277,9 @@ def analyze_survey_responses(responses: List[dict]) -> Dict:
         'question_analytics': {}
     }
 
-    for question_id in responses[0].get('responses', {}).keys():  # Ensure responses[0] exists
+    for question_id in responses[0].get('responses', {}).keys():
         answers = [r.get('responses', {}).get(question_id) for r in responses]
         analytics['question_analytics'][question_id] = analyze_question(answers)
 
     return analytics
+
